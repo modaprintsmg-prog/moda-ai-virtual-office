@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Moda Print — AI Virtual Office</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111318;color:#f5f0e8;font-family:Inter,system-ui,Arial,sans-serif}
+header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#17191f;border-bottom:1px solid #8c7048}
+.brand{font-weight:800;letter-spacing:1.5px}.brand span{color:#d7b477}.status{font-size:12px;color:#a8d7ad}
+main{max-width:1100px;margin:auto;padding:14px}.hero{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:8px 0 14px}.hero h1{font-size:22px;margin:0}.hero p{font-size:12px;color:#b9b4aa;margin:5px 0 0}
+#stage{height:min(64vh,590px);min-height:360px;background:radial-gradient(ellipse at 50% 25%,#53432f,#191a1e 68%);border:1px solid #806743;border-radius:16px;overflow:hidden;position:relative}
+canvas{display:block;width:100%;height:100%;touch-action:pan-y}
+.hint{position:absolute;left:12px;top:12px;background:#111a;color:#ead5ad;border:1px solid #94784d;border-radius:9px;padding:8px 10px;font-size:11px;pointer-events:none}
+.panel{margin-top:12px;background:#1c1e24;border:1px solid #5d4c34;border-radius:14px;padding:14px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.panel h2{font-size:17px;margin:0 0 5px}.panel p{font-size:12px;color:#c1b9ac;margin:0;line-height:1.5}
+button{border:1px solid #9b7b4d;background:#755632;color:white;padding:11px 14px;border-radius:10px;font-weight:650}
+.rooms{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}.room{background:#25242a;border:1px solid #5e503c;border-radius:10px;padding:10px 5px;text-align:center;font-size:11px}.room b{display:block;margin-top:5px}.room.active{background:#61482c;border-color:#e0bd81}
+footer{text-align:center;color:#827d75;font-size:10px;padding:14px}
+@media(max-width:600px){.rooms{grid-template-columns:repeat(2,1fr)}.room:last-child{grid-column:span 2}.panel{align-items:flex-start;flex-direction:column}.panel button{width:100%}.hero h1{font-size:19px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><span>◆</span> MODA PRINT <small style="font-weight:400">AI VIRTUAL OFFICE</small></div><div class="status">● PROTOTIPE</div></header>
+<main>
+<div class="hero"><div><h1>Luxury Virtual Headquarters</h1><p>Ketuk ruangan atau avatar untuk melihat departemen.</p></div><div style="font-size:11px;color:#d7b477">OWNER: ARGY</div></div>
+<div id="stage"><div class="hint">Geser untuk memutar • Cubit untuk zoom • Ketuk ruangan</div></div>
+<section class="panel"><div><h2 id="title">AXEL — AI Manager</h2><p id="desc">Pusat komando Moda Print. Mengatur koordinasi empat agen dan menyampaikan laporan kepada owner.</p></div><button id="enter">Masuk ruangan →</button></section>
+<div class="rooms" id="rooms"></div>
+<footer>Moda Print • Prototype 3D interaktif • Integrasi AI dan Make.com belum diaktifkan</footer>
+</main>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+const defs=[
+ {id:'axel',name:'AXEL',role:'AI Manager',job:'Pusat komando Moda Print. Mengatur koordinasi empat agen dan menyampaikan laporan kepada owner.',color:0xd8b36e,x:0,z:0},
+ {id:'clara',name:'CLARA',role:'Marketing Agent',job:'Strategi pemasaran, riset pasar, promosi, dan pertumbuhan pelanggan.',color:0x9b8be8,x:-4,z:-3},
+ {id:'leon',name:'LEON',role:'Sales Agent',job:'Pengelolaan prospek, pelayanan pelanggan, negosiasi, dan closing.',color:0x6ea7d8,x:4,z:-3},
+ {id:'nadia',name:'NADIA',role:'HR Agent',job:'Rekrutmen, administrasi SDM, evaluasi, dan kebijakan karyawan.',color:0xd98fb5,x:-4,z:3},
+ {id:'kai',name:'KAI',role:'Content Creator Agent',job:'Studio ide, desain promosi, copywriting, dan konten media sosial.',color:0x79bca6,x:4,z:3}
+];
+const stage=document.querySelector('#stage'), scene=new THREE.Scene();scene.background=new THREE.Color(0x191a1e);
+const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(10,12,15);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;stage.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,0,0);controls.maxPolarAngle=Math.PI*.48;controls.minDistance=8;controls.maxDistance=27;
+scene.add(new THREE.HemisphereLight(0xffe8c4,0x30313c,2));
+const light=new THREE.DirectionalLight(0xffd99a,3);light.position.set(7,12,8);light.castShadow=true;scene.add(light);
+const floor=new THREE.Mesh(new THREE.BoxGeometry(13,.35,11),new THREE.MeshStandardMaterial({color:0x82745f,metalness:.35,roughness:.3}));floor.position.y=-.25;floor.receiveShadow=true;scene.add(floor);
+const grid=new THREE.GridHelper(13,13,0x806b4c,0x514735);grid.position.y=-.065;scene.add(grid);
+const mat=(c,m=0,r=.45)=>new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r});
+function box(w,h,d,x,y,z,material){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o}
+const gold=mat(0xc49b5b,.65,.25),glass=new THREE.MeshStandardMaterial({color:0x8fb7c6,transparent:true,opacity:.24,metalness:.35,roughness:.12});
+function avatar(d){const group=new THREE.Group();group.position.set(d.x,.05,d.z);scene.add(group);
+ const body=new THREE.Mesh(new THREE.CylinderGeometry(.28,.38,.85,12),mat(d.color,.25,.4));body.position.y=.75;body.castShadow=true;group.add(body);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.27,16,12),mat(0xe4c5a5,0,.65));head.position.y=1.42;head.castShadow=true;group.add(head);
+ const hair=new THREE.Mesh(new THREE.SphereGeometry(.275,16,8,0,Math.PI*2,0,Math.PI*.52),mat(0x292329));hair.position.y=1.53;group.add(hair);
+ const pl=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.08,24),gold);pl.position.y=.08;group.add(pl);
+ const label=makeLabel(d.name+' • '+d.role);label.position.set(0,2.05,0);group.add(label);group.userData.room=d.id;return group;}
+function makeLabel(text){const c=document.createElement('canvas');c.width=512;c.height=96;const ctx=c.getContext('2d');ctx.fillStyle='#17191ee8';ctx.strokeStyle='#d8b36e';ctx.lineWidth=5;ctx.roundRect(4,4,504,88,18);ctx.fill();ctx.stroke();ctx.fillStyle='#fff1d5';ctx.font='bold 27px Arial';ctx.textAlign='center';ctx.fillText(text,256,59);const tex=new THREE.CanvasTexture(c);const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));m.scale.set(3.2,.6,1);return m}
+const roomObjects=[];
+defs.forEach(d=>{const room=box(d.id==='axel'?4.2:3.5,.12,3.1,d.x,-.01,d.z,mat(0x4a4032,.2,.35));room.userData.room=d.id;roomObjects.push(room);
+ box(d.id==='axel'?3.9:3.2,1.9,.09,d.x,.95,d.z-1.52,glass);
+ box(1.25,.12,.7,d.x,.65,d.z+.65,mat(0x6e5131,.4,.3));
+ const av=avatar(d);roomObjects.push(av);
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(d.id==='axel'?1.9:1.55,.035,8,48),gold);ring.rotation.x=Math.PI/2;ring.position.set(d.x,.08,d.z);scene.add(ring);
+});
+box(1.4,.12,1.4,0,.15,0,gold);
+const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();let selected='axel';
+function select(id){const d=defs.find(x=>x.id===id);if(!d)return;selected=id;document.querySelector('#title').textContent=d.name+' — '+d.role;document.querySelector('#desc').textContent=d.job;document.querySelectorAll('.room').forEach(b=>b.classList.toggle('active',b.dataset.id===id));}
+const rooms=document.querySelector('#rooms');defs.forEach(d=>{const b=document.createElement('button');b.className='room'+(d.id==='axel'?' active':'');b.dataset.id=d.id;b.innerHTML=`<span style="font-size:20px">●</span><b>${d.name}</b><span>${d.role}</span>`;b.onclick=()=>select(d.id);rooms.appendChild(b)});
+renderer.domElement.addEventListener('pointerup',e=>{const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(pointer,camera);const hits=ray.intersectObjects(scene.children,true);for(const h of hits){let o=h.object;while(o&&!o.userData.room)o=o.parent;if(o?.userData.room){select(o.userData.room);break}}});
+document.querySelector('#enter').onclick=()=>{const d=defs.find(x=>x.id===selected);controls.target.set(d.x,0,d.z);camera.position.set(d.x+5,4.5,d.z+6);};
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}
+new ResizeObserver(resize).observe(stage);resize();
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();select('axel');
+</script>
+</body></html>
